@@ -22,7 +22,8 @@ export function canonicalKey(raw: string): string {
   s = s.replace(/^[a-z0-9_.-]+\//, "");
   s = s.replace(/\([^)]*\)/g, " ").trim();
   s = s.replace(/(\d)p(\d)/g, "$1.$2");
-  const key = stripSuffixes(s).replace(/[^a-z0-9]/g, "");
+  s = stripSuffixes(s).replace(/(\d)[.\-\s]0$/, "$1");
+  const key = s.replace(/[^a-z0-9]/g, "");
   return aliasMap[key] ?? key;
 }
 
@@ -32,6 +33,7 @@ export function cleanName(raw: string): string {
     .replace(/^[A-Za-z0-9 .-]+:\s+/, "")
     .replace(/^[a-z0-9_.-]+\//, "")
     .replace(/\s*\([^)]*\)/g, "")
+    .replace(/[-_ ]20\d{6}$/, "")
     .trim();
   return /[_]|^[a-z0-9.-]+$/.test(s) ? stripSuffixes(s) : s;
 }

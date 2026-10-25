@@ -17,7 +17,7 @@ const Schema = z.object({
 export async function fetchOpenRouter(): Promise<SourceRecord[]> {
   const { data } = Schema.parse(await fetchJson("https://openrouter.ai/api/v1/models"));
   return data
-    .filter((m) => !m.id.endsWith(":free") && !m.id.startsWith("openrouter/"))
+    .filter((m) => !m.id.includes(":") && !m.id.startsWith("openrouter/"))
     .map((m) => {
       const input = Number(m.pricing?.prompt) * 1e6;
       const output = Number(m.pricing?.completion) * 1e6;

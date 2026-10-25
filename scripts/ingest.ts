@@ -232,7 +232,7 @@ function buildEvents(models: Model[], previous: Dataset | null, openrouter: Sour
   const recent = new Date(now);
   recent.setDate(recent.getDate() - 30);
   const recentStr = recent.toISOString().slice(0, 10);
-  const ranked = new Set(models.map((m) => m.openrouterId).filter(Boolean));
+  const ranked = new Set(models.map((m) => m.id));
 
   for (const m of models) {
     if (m.releaseDate && m.releaseDate >= recentStr) {
@@ -246,13 +246,16 @@ function buildEvents(models: Model[], previous: Dataset | null, openrouter: Sour
     }
   }
   for (const r of openrouter) {
-    if (r.releaseDate && r.releaseDate >= recentStr && !ranked.has(r.openrouterId ?? "")) {
+    const known =
+      ranked.has(canonicalKey(r.openrouterId ?? r.name)) || ranked.has(canonicalKey(r.name));
+    const org = resolveOrg(r.org, r.name);
+    if (r.releaseDate && r.releaseDate >= recentStr && !known && org !== "other") {
       push({
         id: `release:or:${r.openrouterId}`,
         date: r.releaseDate,
         type: "release",
         modelId: null,
-        text: `${cleanName(r.name)} is now available — awaiting benchmarks`,
+        text: `${orgOf(org).label} ${cleanName(r.name)} is live on OpenRouter — awaiting benchmarks`,
       });
     }
   }
