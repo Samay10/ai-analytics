@@ -23,6 +23,28 @@ const CACHE_DIR = join(ROOT, "data/cache");
 const OUT_DIR = join(ROOT, "public/data");
 const HISTORY_DIR = join(OUT_DIR, "history");
 
+/** Load repo-root `.env` into process.env (never committed — see .gitignore). */
+function loadEnv() {
+  const path = join(ROOT, ".env");
+  if (!existsSync(path)) return;
+  for (const line of readFileSync(path, "utf8").split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const eq = trimmed.indexOf("=");
+    if (eq < 1) continue;
+    const key = trimmed.slice(0, eq).trim();
+    let val = trimmed.slice(eq + 1).trim();
+    if (
+      (val.startsWith('"') && val.endsWith('"')) ||
+      (val.startsWith("'") && val.endsWith("'"))
+    ) {
+      val = val.slice(1, -1);
+    }
+    if (!(key in process.env)) process.env[key] = val;
+  }
+}
+loadEnv();
+
 const RECENCY_MONTHS = 18;
 const MAX_MODELS = 120;
 const MIN_METRIC_COVERAGE = 3;
