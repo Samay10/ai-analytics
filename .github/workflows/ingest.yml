@@ -1,0 +1,39 @@
+name: Ingest benchmarks
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ingest
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run ingest
+        env:
+          AA_API_KEY: ${{ secrets.AA_API_KEY }}
+      - name: Commit data
+        run: |
+          git config user.name "benchmark-bot"
+          git config user.email "benchmark-bot@users.noreply.github.com"
+          git add public/data data/cache
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "data: refresh $(date -u +%Y-%m-%dT%H:%MZ)"
+            git push
+          fi
